@@ -2,7 +2,8 @@
 (*Examples of `FiniteFlow` usage*)
 
 Get["FiniteFlow`"]
-Get["utils.m"]
+(* point this to a copy of https://github.com/vchestnov/utils *)
+Get["~/dev/utils/utils.m"]
 
 (* ::Subsection:: *)
 (*FFAlgMatMul and FFAlgLaurent*)
@@ -308,4 +309,53 @@ Module[
     FFAlgMul[main, "mul", {"list", "take"}];
     FFGraphOutput[main, "mul"];
     FFReconstructFunction[main, params]
+]
+
+(* ::Subsection:: *)
+(*FFAlgAdd*)
+
+Module[
+    {main, params, list, val},
+    params = {x, y, z};
+    list1 = {(x^2 + y) / (x + y), y / (x + y^2)};
+    list2 = {x^3, y^4};
+    list3 = {z, 42};
+    FFNewGraph[main, "in", params];
+    FFAlgRatFunEval[main, "list1", {"in"}, params, list1];
+    FFAlgRatFunEval[main, "list2", {"in"}, params, list2];
+    FFAlgRatFunEval[main, "list3", {"in"}, params, list3];
+    FFAlgAdd[main, "add", {"list1", "list2", "list3"}];
+    FFGraphOutput[main, "add"];
+    FFReconstructFunction[main, params]
+]
+
+(* ::Subsection:: *)
+(*Inverse using FFAlgNodeDenseSolver*)
+
+Module[{main, A, b, vars, params, learn, nsol, sol},
+    params = {z, eps};
+    A = {
+        {eps, z^2 / (eps + z)},
+        {0, z^2 + eps}
+    };
+    FFNewGraph[main, "in", params];
+    FFAlgRatFunEval[main, "vals", {"in"}, params, A // Flatten];
+    FFAlgRatNumEval[main, "id", IdentityMatrix[2] // Flatten];
+    FFAlgTake[main, "sys", {"vals", "id"}, {
+        {1, 1}, {1, 2}, {2, 1}, {2, 2}, {2, 2},
+        {1, 3}, {1, 4}, {2, 3}, {2, 4}, {2, 2},
+        Nothing
+    }];
+    (* FFGraphOutput[main, "sys"]; *)
+    FFAlgNodeDenseSolver[main, "sol", {"sys"}, 2, Range[4], "NeededVars" -> {1, 2}];
+    FFSolverOnlyHomogeneous[main, "sol"];
+    FFGraphOutput[main, "sol"];
+    learn = FFDenseSolverLearn[main, Range[4] // Map[f]];
+    sol = (-1) FFReconstructFunction[main, params, "PrintDebugInfo" -> 1] // ArrayReshape[#, {2, 2}]&;
+    Print["Check against Inverse: ",
+        Inverse[A] - sol // Simplify // Flatten //
+        ContainsOnly[{0}]
+    ];
+    sol
+    (* FFDenseSolverSol[sol, learn] *)
 ]
