@@ -5,6 +5,28 @@ Get["FiniteFlow`"]
 (* point this to a copy of https://github.com/vchestnov/utils *)
 Get["~/dev/utils/utils.m"]
 
+
+(* ::Subsection:: *)
+(*Number of sample points for univariate reconstruction*)
+
+Module[
+    {params, vals, res, maxNum, maxDen},
+    params = {x, y};
+    maxNum = 50;
+    maxDen = 40;
+    vals = {
+        Divide[
+            x^Range[0, maxNum] // Apply[Plus] // Multiply[y],
+            x^Range[0, maxDen] // Apply[Plus]
+        ],
+        Nothing
+    };
+    FFNewGraph[main, "in", params];
+    FFAlgRatFunEval[main, "vals", {"in"}, params, vals];
+    FFGraphOutput[main, "vals"];
+    res = FFReconstructFunction[main, params, "PrintDebugInfo" -> 1]
+]
+
 (* ::Subsection:: *)
 (*FFAlgMatMul and FFAlgLaurent*)
 
@@ -136,7 +158,8 @@ Module[{main, eqs, vars, params, learn, nsol, sol},
     (* ] // TM["nsol"]; *)
     (* (1* FFSparseSolverSol[nsol, learn] *1) *)
     sol = FFReconstructFunction[main, params, "PrintDebugInfo" -> 1];
-    FFSparseSolverSol[sol, learn]
+    learn
+    (* FFSparseSolverSol[sol, learn] *)
     (* Internal`PartitionRagged[sol, learn[[2, 2]] // Map[Length]] *)
     (* Inner[Map[Prepend[#1], #2]&, learn[[1, 2]], learn[[2, 2]], List] *)
 ]
@@ -151,6 +174,7 @@ Module[{main, A, b, vars, params, learn, nsol, sol},
         {eps z / (z + 1), z^2 / (eps + z)},
         {0, z^2 + eps}
     }, {1 / z, eps} // List // Transpose, 2];
+    Print[A // MatrixForm];
     FFNewGraph[main, "in", params];
     FFAlgRatFunEval[main, "vals", {"in"}, params, A // Flatten];
     FFAlgNodeDenseSolver[main, "solver", {"vals"}, 2, vars];
