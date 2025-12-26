@@ -1,0 +1,68 @@
+LIB "primdec.lib";
+
+ring R = 0, (x, y, z), dp;
+
+poly f = x4 + x3y + x3z2 - x2y2 + x2yz2 - xy3 - xy2z2 - y3z2;
+poly g = x4 + 2x3z2 - x2y2 + x2z4 - 2xy2z2 - y2z4;
+
+ideal I;
+ideal J;
+I = ideal(f);
+J = ideal(g);
+
+ideal IJ = I * J;
+IJ = std(IJ);
+IJ;
+
+// split declaration of radical ideal...
+ideal radIJ;
+// ...from its calculation
+radIJ = radical(IJ);
+radIJ = std(radIJ);
+radIJ;
+
+ideal interIJ;
+interIJ = intersect(I, J);
+interIJ = std(interIJ);
+interIJ;
+
+// multivariate gcd
+poly l = interIJ[1];
+
+// sanity check: remainder is zero
+poly r = reduce(f * g, l);
+r;
+
+// gcd(f, g)
+poly mygcd = (f * g) / l;
+mygcd;
+
+poly p = x2 + xy + xz + yz;
+poly q = x2 - xy - xz + yz;
+
+ideal fplusg;
+ideal pplusq;
+fplusg = ideal(f) + ideal(g);
+fplusg = std(fplusg);
+pplusq = ideal(p) + ideal(q);
+pplusq = std(pplusq);
+
+ideal inter;
+
+inter = intersect(fplusg, pplusq);
+inter = std(inter);
+inter;
+
+// basic elimination example
+ring R = 0, (x,y), dp;
+
+ideal I = x2 + y2 - 4, x2 - y;
+ideal J = eliminate(I, x);
+printf("J = %s", J);
+
+int i;
+for (i = 1; i <= ncols(J); i++) {
+    printf("g_%s = %s\n", i, J[i]);
+}
+
+quit;
