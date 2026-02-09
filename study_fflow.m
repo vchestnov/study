@@ -7,6 +7,23 @@ Get["~/dev/utils/utils.m"]
 
 
 (* ::Subsection:: *)
+(*FFPrimes and big coefficients*)
+
+Module[
+    {params, main, vals, res},
+    params = {x, y};
+    vals = {
+        2^32 y,
+        FFPrimeNo[0] x,
+        Nothing
+    };
+    FFNewGraph[main, "in", params];
+    FFAlgRatFunEval[main, "vals", {"in"}, params, vals];
+    FFGraphOutput[main, "vals"];
+    res = FFReconstructFunction[main, params, "PrintDebugInfo" -> 1, "StartingPrimeNo" -> 1]
+]
+
+(* ::Subsection:: *)
 (*Number of sample points for univariate reconstruction*)
 
 Module[
