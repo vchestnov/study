@@ -1,12 +1,18 @@
+(* ::Package:: *)
+
 (* ::Section:: *)
 (*Examples of `FiniteFlow` usage*)
+
 
 Get["FiniteFlow`"]
 (* point this to a copy of https://github.com/vchestnov/utils *)
 Get["~/dev/utils/utils.m"]
 
+
+
 (* ::Subsection:: *)
 (*polynomial interpolation with linear system (Vandermonde)*)
+
 
 ClearAll[poly, ansatz, as, grid, polyVals, ansatzVals, $max];
 poly = 1 + 5 x + x^2;
@@ -28,12 +34,13 @@ system // rowReduce // MatrixForm
 (* ::Subsection:: *)
 (*FFPrimes and big coefficients*)
 
+
 Module[
     {params, main, vals, res},
     params = {x, y};
     vals = {
-        2^32 y,
-        FFPrimeNo[0] x,
+        2^31 y,
+        (*FFPrimeNo[0] x,*)
         Nothing
     };
     FFNewGraph[main, "in", params];
@@ -42,8 +49,11 @@ Module[
     res = FFReconstructFunction[main, params, "PrintDebugInfo" -> 1, "StartingPrimeNo" -> 1]
 ]
 
+
+
 (* ::Subsection:: *)
 (*Number of sample points for univariate reconstruction*)
+
 
 Module[
     {params, vals, res, maxNum, maxDen},
@@ -63,8 +73,11 @@ Module[
     res = FFReconstructFunction[main, params, "PrintDebugInfo" -> 1]
 ]
 
+
+
 (* ::Subsection:: *)
 (*FFAlgMatMul and FFAlgLaurent*)
+
 
 Module[
     {mat1, mat2, dims1, dims2, main, exp, explearn, params, res, expmax, min, max, nvals},
@@ -83,15 +96,18 @@ Module[
     FFAlgRatFunEval[main, "vals2", {"in"}, params, mat2 // Flatten];
     FFAlgMatMul[main, "mult", {"vals1", "vals2"}, dims1[[1]], dims1[[2]], dims2[[2]]];
     FFGraphOutput[main, "mult"];
-    FFNewGraph[exp, "in", params[[2;;]]];
+    res = FFReconstructFunction[main, params, "PrintDebugInfo" -> 1]
+    (*FFNewGraph[exp, "in", params[[2;;]]];
     FFAlgLaurent[exp, "laurent", {"in"}, main, expmax];
     FFGraphOutput[exp, "laurent"];
     explearn = FFLaurentLearn[exp];
     {min, max} = zipWith[{Min, Max}, explearn];
     (* nvals = FFGraphEvaluate[exp, {10^2}]; *)
     res = FFReconstructFunction[exp, params[[2;;]], "PrintDebugInfo" -> 1];
-    FFLaurentSol[res, dd, explearn] // ArrayReshape[#, {dims1[[1]], dims2[[2]]}]& // MatrixForm
+    FFLaurentSol[res, dd, explearn] // ArrayReshape[#, {dims1[[1]], dims2[[2]]}]& // MatrixForm*)
 ]
+
+
 
 Module[
     {params, explearn, nzlearn},
@@ -110,8 +126,11 @@ Module[
     FFLaurentSol[FFNonZeroesSol[res, nzlearn] // Normal, dd, explearn]
 ]
 
+
+
 (* ::Subsection:: *)
 (*Outer using FFAlgMatMul*)
+
 
 Module[{main, mat1, mat2, params, dims1, dims2, ans, sol},
     mat1 = Range[10] // ArrayReshape[#, {2, 5}]&;
@@ -133,8 +152,11 @@ Module[{main, mat1, mat2, params, dims1, dims2, ans, sol},
     SameQ[ans, sol]
 ]
 
+
+
 (* ::Subsection:: *)
 (*FFAlgSparseSolver*)
+
 
 Module[{main, eqs, vars, params, learn, nsol, sol},
     params = {z, eps};
@@ -167,6 +189,8 @@ Module[{main, eqs, vars, params, learn, nsol, sol},
     (* FFSparseSolverSol[sol, learn] *)
 ]
 
+
+
 Module[{main, eqs, vars, params, learn, nsol, sol},
     params = {z, eps};
     eqs = {
@@ -194,14 +218,16 @@ Module[{main, eqs, vars, params, learn, nsol, sol},
     (* ] // TM["nsol"]; *)
     (* (1* FFSparseSolverSol[nsol, learn] *1) *)
     sol = FFReconstructFunction[main, params, "PrintDebugInfo" -> 1];
-    learn
-    (* FFSparseSolverSol[sol, learn] *)
+     FFSparseSolverSol[sol, learn] 
     (* Internal`PartitionRagged[sol, learn[[2, 2]] // Map[Length]] *)
     (* Inner[Map[Prepend[#1], #2]&, learn[[1, 2]], learn[[2, 2]], List] *)
 ]
 
+
+
 (* ::Subsection:: *)
 (*FFAlgNodeDenseSolver*)
+
 
 Module[{main, A, b, vars, params, learn, nsol, sol},
     params = {z, eps};
@@ -224,8 +250,11 @@ Module[{main, A, b, vars, params, learn, nsol, sol},
     (* ] // TM["nsol"] *)
 ]
 
+
+
 (* ::Subsection:: *)
 (*FFAlgTake*)
+
 
 Module[{main, row, data, params, learn, nsol, sol},
     params = {a, b};
@@ -251,8 +280,11 @@ Module[{main, row, data, params, learn, nsol, sol},
     ] // MatrixForm
 ]
 
+
+
 (* ::Subsection:: *)
 (*FFAlgNodeSparseSolver*)
+
 
 Module[{main, A, b, vars, params, learn, nsol, sol},
     params = {z, eps};
@@ -271,8 +303,11 @@ Module[{main, A, b, vars, params, learn, nsol, sol},
     FFSparseSolverSol[sol, learn]
 ]
 
+
+
 (* ::Subsection:: *)
 (*FFAlgTakeAndAdd example*)
+
 
 Module[{main, params},
     params = {eps, eps1, eps2, eps3};
@@ -301,8 +336,11 @@ Module[{main, params},
     res
 ]
 
+
+
 (* ::Subsection:: *)
 (*FFAlgRatFunEval issue*)
+
 
 Module[{main, params},
     params = {};
@@ -322,8 +360,11 @@ Module[{main, params, test},
     FFReconstructFunction[main, {whatever}]
 ]
 
+
+
 (* ::Subsection:: *)
 (*Derivative using `FFAlgLaurent`*)
+
 
 fun = (a + 42 + z)^5 / (z^2 (z + 1)^3);
 dfun = Module[{main, params, shift, exp, learn},
@@ -345,8 +386,11 @@ dfun = Module[{main, params, shift, exp, learn},
 ];
 dfun - D[fun, z] // Simplify // SameQ[#, 0]&
 
+
+
 (* ::Subsection:: *)
 (*Numerical slices using FFAlgRatFunEval (unfinished)*)
+
 
 FFNewGraph[main, "in", Range[1]];
 FFAlgRatFunEval[main, "slice", {"in"}, {freeparam}, {42, freeparam^2}];
@@ -354,8 +398,11 @@ FFAlgRatFunEval[main, "system", {"slice"}, {x, y}, {x + y}];
 FFGraphOutput[main, "system"];
 FFReconstructFunction[main, {whatever}]
 
+
+
 (* ::Subsection:: *)
 (*FFAlgMul*)
+
 
 Module[
     {main, params, list, val},
@@ -371,8 +418,11 @@ Module[
     FFReconstructFunction[main, params]
 ]
 
+
+
 (* ::Subsection:: *)
 (*FFAlgAdd*)
+
 
 Module[
     {main, params, list, val},
@@ -389,8 +439,11 @@ Module[
     FFReconstructFunction[main, params]
 ]
 
+
+
 (* ::Subsection:: *)
 (*Inverse using FFAlgNodeDenseSolver*)
+
 
 Module[{main, A, b, vars, params, learn, nsol, sol},
     params = {z, eps};
