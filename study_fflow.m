@@ -5,6 +5,25 @@ Get["FiniteFlow`"]
 (* point this to a copy of https://github.com/vchestnov/utils *)
 Get["~/dev/utils/utils.m"]
 
+(* ::Subsection:: *)
+(*polynomial interpolation with linear system (Vandermonde)*)
+
+ClearAll[poly, ansatz, as, grid, polyVals, ansatzVals, $max];
+poly = 1 + 5 x + x^2;
+$max = 5;
+ansatz = Range[0, $max] // Map[a[#] x^#&] // Total;
+as = ansatz // filter[_a] // Reverse;
+grid = Range[0, $max + 2];
+polyVals = grid // Map[ReplaceAll[poly, x -> #]&];
+ansatzVals = grid // Map[ReplaceAll[ansatz, x -> #]&];
+system = Join[
+    ansatzVals // CoefficientArrays[#, as]& // Last,
+    polyVals // List // Transpose,
+    2
+];
+(* see the coefficients in the rightmost column *)
+system // rowReduce // MatrixForm
+
 
 (* ::Subsection:: *)
 (*FFPrimes and big coefficients*)
@@ -29,7 +48,7 @@ Module[
 Module[
     {params, vals, res, maxNum, maxDen},
     params = {x, y};
-    maxNum = 50;
+    maxNum = 60;
     maxDen = 40;
     vals = {
         Divide[
